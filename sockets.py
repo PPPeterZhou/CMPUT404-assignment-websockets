@@ -116,7 +116,6 @@ def subscribe_socket(ws):
         while True:
             # block here
             msg = client.get()
-            print("Got a message!")
             ws.send(msg)
     except Exception as e:# WebSocketError as e:
         print("WS Error %s" % e)
@@ -150,20 +149,18 @@ def update(entity):
 @app.route("/world", methods=['POST','GET'])    
 def world():
     '''you should probably return the world here'''
-    return myWorld.world()
+    return flask.jsonify(myWorld.world())
 
 @app.route("/entity/<entity>")    
 def get_entity(entity):
     '''This is the GET version of the entity interface, return a representation of the entity'''
-    return myWorld.get(entity)
+    return flask.jsonify(myWorld.get(entity))
 
 @app.route("/clear", methods=['POST','GET'])
 def clear():
     '''Clear the world out!'''
     myWorld.clear()
-    return myWorld.world()
-
-
+    return flask.jsonify(myWorld.world())
 
 if __name__ == "__main__":
     ''' This doesn't work well anymore:
