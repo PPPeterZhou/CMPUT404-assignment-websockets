@@ -25,7 +25,7 @@
   <body bgcolor="white" height="100%" width="100%"> 
     <div id="debug"></div>
     <canvas id="c" width="100%" height="100%" style="-webkit-tap-highlight-color: transparent;"></canvas> 
-
+    <img id="moon_and_star" src='moon_and_star.png', height="80px", width="80px">
     <script>
       // Fix me
 var canvas = document.getElementById('c');
@@ -46,6 +46,7 @@ world = {};
 
 //XXX: TODO Make this prettier!
 function drawCircle(context,entity) {
+    var mns = document.getElementById('moon_and_star');
     with(context) {
         beginPath();                
         lineWidth = 3;
@@ -55,7 +56,9 @@ function drawCircle(context,entity) {
         fillStyle = entity["colour"];
         strokeStyle = fillStyle;
         arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
-        stroke();                                
+        // FROM: https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Using_images
+        drawImage(mns, x-45, y-45, 80, 80);
+        stroke();                              
     }
 }
 
@@ -125,6 +128,9 @@ function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just modified!
+    obj = {};
+    obj[entity] = data;
+    socket.send(JSON.stringify(obj))
 }
 var counter = 0;
 function addEntityWithoutName(data) {
@@ -231,18 +237,17 @@ mouse = (function() {
 // Add the application specific mouse listeners!
 //XXX: TODO Make these prettier!
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+    addEntityWithoutName({'x':x,'y':y,'colour':'white'});
 });
 
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+    addEntityWithoutName({'x':x,'y':y,'colour':'grey'});
 });
 
 mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'green',
+    addEntityWithoutName({'x':x,'y':y,'colour':'transparent',
                           'radius':10});
 });
-
 
 function update() {
     drawFrame();
@@ -254,6 +259,7 @@ function wsSetup() {
     socket = new WebSocket(url);
     socket.onopen = function() {
         //XXX: TODO What are you going to do here?
+        debug("WebSocket Error:" + msg.data);
     };
     socket.onerror = function(msg) {
         debug("WebSocket Error:" + msg.data);
@@ -261,7 +267,9 @@ function wsSetup() {
     socket.onmessage = function(msg) {  
         try {
             debug("WebSocket Recv:" + msg.data);
-            //XXX: TODO What are you going to do here?            
+            //XXX: TODO What are you going to do here?    
+            var message = JSON.parse(msg.data);
+            addMessage(message["msg"]);        
         } catch (e) {
             alert("socket on message: " + e);
         }
